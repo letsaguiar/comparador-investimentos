@@ -2,20 +2,15 @@ export enum AssetType {
     CDB,
 }
 
-export enum AssetRateReference {
-    CDI,
-    IPCA,
-    SELIC,
+export interface AssetRate {
+    nominalValue: number,
 }
 
 export interface IAsset {
     type: AssetType,
-    rate: {
-        reference: AssetRateReference,
-        nominalValue: number,
-    },
+    rate: AssetRate,
     presentValue: number,
     futureValue: number,
-    transactionDate: number,
-    maturityDate: number,
+    transactionDate: Date,
+    maturityDate: Date,
 }
