@@ -1,6 +1,8 @@
-import {type AssetRate, AssetType, type IAsset} from "../interfaces/Asset.ts";
+import {type AssetRate, AssetRateType, AssetType, type IAsset} from "../interfaces/Asset.ts";
 import type {Result} from "../interfaces/Result.ts";
 import {Money} from "../money/money.ts";
+import {PreFixedCdbDailyNominalRateStrategy} from "./cdb/daily-nominal-rate.strategy.ts";
+import type {IDailyNominalRateStrategy} from "../interfaces/Strategy.ts";
 
 export class Asset implements IAsset {
     public type: AssetType;
@@ -29,8 +31,17 @@ export class Asset implements IAsset {
     }
 
     private getDailyNominalRate(): Result<number, Error> {
-        const rate = (this.rate.nominalValue / (100 * 365));
-        return ({ ok: rate });
+        const strategies: Record<AssetRateType, Record<AssetType, IDailyNominalRateStrategy>> = {
+            [AssetRateType.PreFixed]: {
+                [AssetType.CDB]: PreFixedCdbDailyNominalRateStrategy,
+            }
+        }
+
+        const strategy = strategies[this.rate.type][this.type];
+        if (!strategy)
+            return ({ err: new Error("Unable to get asset's daily nominal rate") });
+        else
+            return (strategy(this));
     }
 
     private getReturnFactor(step: Result<number, Error>): Result<number, Error> {

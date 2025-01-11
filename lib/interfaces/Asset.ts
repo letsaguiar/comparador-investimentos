@@ -2,7 +2,12 @@ export enum AssetType {
     CDB,
 }
 
+export enum AssetRateType {
+    PreFixed,
+}
+
 export interface AssetRate {
+    type: AssetRateType,
     nominalValue: number,
 }
 

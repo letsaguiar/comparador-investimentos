@@ -1,6 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import {Asset} from "./asset.ts";
-import {AssetType} from "../interfaces/Asset.ts";
+import {AssetRateType, AssetType} from "../interfaces/Asset.ts";
 
 describe("Asset", () => {
     describe('PreFixed Assets', () => {
@@ -8,6 +8,7 @@ describe("Asset", () => {
             const asset = new Asset({
                 type: AssetType.CDB,
                 rate: {
+                    type: AssetRateType.PreFixed,
                     nominalValue: 10
                 },
                 presentValue: 1000,
