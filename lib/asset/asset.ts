@@ -1,9 +1,15 @@
 import {type AssetRate, AssetRateType, AssetType, type IAsset} from "../interfaces/Asset.ts";
 import type {Result} from "../interfaces/Result.ts";
 import {PreFixedCdbDailyNominalRateStrategy} from "./cdb/daily-nominal-rate.strategy.ts";
-import type {IDailyNominalRateStrategy, IFutureValueStrategy, IReturnFactorStrategy} from "../interfaces/Strategy.ts";
+import type {
+    IDailyNominalRateStrategy,
+    IDiscountIOFStrategy,
+    IFutureValueStrategy,
+    IReturnFactorStrategy
+} from "../interfaces/Strategy.ts";
 import {PreFixedCdbReturnFactorStrategy} from "./cdb/return-factor.strategy.ts";
 import {PreFixedCdbFutureValueStrategy} from "./cdb/future-value.strategy.ts";
+import {CdbDiscountIofStrategy} from "./cdb/discount-iof.strategy.ts";
 
 export class Asset implements IAsset {
     public type: AssetType;
@@ -24,6 +30,7 @@ export class Asset implements IAsset {
         let step = this.getDailyNominalRate();
         step = this.getReturnFactor(step);
         step = this.getFutureValue(step);
+        step = this.discountIof(step);
 
         if (step.err)
             throw step.err;
@@ -77,5 +84,22 @@ export class Asset implements IAsset {
             return ({ err: new Error("Unable to get asset's future value") });
         else
             return ({ ok: strategy({ asset: this, factor: step.ok }) });
+    }
+
+    private discountIof(step: Result<number, Error>): Result<number, Error> {
+        if (step.err)
+            return (step);
+
+        const strategies: Record<AssetRateType, Record<AssetType, IDiscountIOFStrategy>> = {
+            [AssetRateType.PreFixed]: {
+                [AssetType.CDB]: CdbDiscountIofStrategy,
+            }
+        }
+
+        const strategy = strategies[this.rate.type][this.type];
+        if (!strategy)
+            return ({ err: new Error("Unable to get asset's future value") });
+        else
+            return ({ ok: strategy({ asset: this, value: step.ok }) });
     }
 }

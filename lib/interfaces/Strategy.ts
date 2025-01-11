@@ -10,3 +10,7 @@ export type IFutureValueStrategy = IStrategy<{
     asset: IAsset,
     factor: number
 }, number>
+export type IDiscountIOFStrategy = IStrategy<{
+    asset: IAsset,
+    value: number;
+}, number>
