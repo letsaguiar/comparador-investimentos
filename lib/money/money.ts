@@ -14,4 +14,24 @@ export class Money implements IMoney {
     public toString(): string {
         return (this.toNumber().toFixed(2));
     }
+
+    public add(money: IMoney): IMoney {
+        const amount = (this.amount + (money.toNumber() * 100)) / 100;
+        return (new Money(amount));
+    }
+
+    public subtract(money: IMoney): IMoney {
+        const amount = (this.amount - (money.toNumber() * 100)) / 100;
+        return (new Money(amount));
+    }
+
+    public multiply(rate: number): IMoney {
+        const amount = this.amount * rate / 100;
+        return (new Money(amount));
+    }
+
+    public divide(rate: number): IMoney {
+        const amount = this.amount / rate / 100;
+        return (new Money(amount));
+    }
 }

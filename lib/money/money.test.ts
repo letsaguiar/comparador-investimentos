@@ -28,4 +28,44 @@ describe("Money", () => {
            }
        });
    });
+
+   describe("add", () => {
+       test("should properly sum two numbers", () => {
+           expect(
+               new Money(1)
+                .add(new Money(2))
+                .toString()
+           ).toEqual("3.00");
+       });
+   });
+
+   describe("subtract", () => {
+       test("should properly subtract two numbers", () => {
+           expect(
+               new Money(1)
+                .subtract(new Money(2))
+                .toString()
+           ).toEqual("-1.00");
+       });
+   });
+
+   describe("multiply", () => {
+       test("should properly multiply two numbers", () => {
+           expect(
+               new Money(1)
+                .multiply(2)
+                .toString()
+           ).toEqual("2.00");
+       });
+   });
+
+   describe("divide", () => {
+       test("should properly divide two numbers", () => {
+           expect(
+               new Money(1)
+                .divide(2)
+                .toString()
+           ).toEqual("0.50");
+       });
+   });
 });
