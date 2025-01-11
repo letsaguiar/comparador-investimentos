@@ -1,8 +1,9 @@
 import {type AssetRate, AssetRateType, AssetType, type IAsset} from "../interfaces/Asset.ts";
 import type {Result} from "../interfaces/Result.ts";
-import {Money} from "../money/money.ts";
 import {PreFixedCdbDailyNominalRateStrategy} from "./cdb/daily-nominal-rate.strategy.ts";
-import type {IDailyNominalRateStrategy} from "../interfaces/Strategy.ts";
+import type {IDailyNominalRateStrategy, IFutureValueStrategy, IReturnFactorStrategy} from "../interfaces/Strategy.ts";
+import {PreFixedCdbReturnFactorStrategy} from "./cdb/return-factor.strategy.ts";
+import {PreFixedCdbFutureValueStrategy} from "./cdb/future-value.strategy.ts";
 
 export class Asset implements IAsset {
     public type: AssetType;
@@ -25,7 +26,7 @@ export class Asset implements IAsset {
         step = this.getFutureValue(step);
 
         if (step.err)
-            throw new Error("Unable to calculate asset future value.");
+            throw step.err;
         else
             return (step.ok);
     }
@@ -41,26 +42,40 @@ export class Asset implements IAsset {
         if (!strategy)
             return ({ err: new Error("Unable to get asset's daily nominal rate") });
         else
-            return (strategy(this));
+            return ({ ok: strategy(this) });
     }
 
     private getReturnFactor(step: Result<number, Error>): Result<number, Error> {
         if (step.err)
             return (step);
 
-        const rate = step.ok;
-        const days = Math.round((this.maturityDate.getTime() - this.transactionDate.getTime()) / (1000 * 60 * 60 * 24));
+        const strategies: Record<AssetRateType, Record<AssetType, IReturnFactorStrategy>> = {
+            [AssetRateType.PreFixed]: {
+                [AssetType.CDB]: PreFixedCdbReturnFactorStrategy,
+            }
+        }
 
-        return ({ ok: Math.pow(1 + rate, days) });
+        const strategy = strategies[this.rate.type][this.type];
+        if (!strategy)
+            return ({ err: new Error("Unable to get asset's return factor rate") });
+        else
+            return ({ ok: strategy({ asset: this, rate: step.ok }) });
     }
 
     private getFutureValue(step: Result<number, Error>): Result<number, Error> {
         if (step.err)
             return (step);
 
-        const factor = step.ok;
-        const futureValue = new Money(this.presentValue).multiply(factor);
+        const strategies: Record<AssetRateType, Record<AssetType, IFutureValueStrategy>> = {
+            [AssetRateType.PreFixed]: {
+                [AssetType.CDB]: PreFixedCdbFutureValueStrategy,
+            }
+        }
 
-        return ({ ok: futureValue.toNumber() });
+        const strategy = strategies[this.rate.type][this.type];
+        if (!strategy)
+            return ({ err: new Error("Unable to get asset's future value") });
+        else
+            return ({ ok: strategy({ asset: this, factor: step.ok }) });
     }
 }
