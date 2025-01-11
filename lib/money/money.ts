@@ -8,11 +8,11 @@ export class Money implements IMoney {
     }
 
     public toNumber(): number {
-        return (this.amount / 100);
+        return (Number.parseFloat(this.toString()));
     }
 
     public toString(): string {
-        return (this.toNumber().toFixed(2));
+        return ((this.amount / 100).toFixed(2));
     }
 
     public add(money: IMoney): IMoney {

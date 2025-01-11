@@ -15,7 +15,7 @@ describe("Asset", () => {
                 maturityDate: new Date("2026-01-01"),
             });
 
-            expect(asset.futureValue.toFixed(2)).toBe("1105.16");
+            expect(asset.futureValue).toBe(1105.16);
         })
     });
 });
