@@ -18,27 +18,38 @@ export class Asset implements IAsset {
     }
 
     get futureValue() {
-        let dailyNominalRate = this.getDailyNominalRate();
-        let daysUntilMaturity = this.getDaysUntilMaturity();
+        let step = this.getDailyNominalRate();
+        step = this.getReturnFactor(step);
+        step = this.getFutureValue(step);
 
-        if (dailyNominalRate.err || daysUntilMaturity.err)
-            throw new Error("Unable to calculate the future value of the asset");
-
-        return (
-            new Money(this.presentValue)
-                .multiply(Math.pow(1 + dailyNominalRate.ok, daysUntilMaturity.ok))
-                .toNumber()
-        );
+        if (step.err)
+            throw new Error("Unable to calculate asset future value.");
+        else
+            return (step.ok);
     }
 
     private getDailyNominalRate(): Result<number, Error> {
-        const res = (this.rate.nominalValue / (100 * 365));
-        return ({ ok: res });
+        const rate = (this.rate.nominalValue / (100 * 365));
+        return ({ ok: rate });
     }
 
-    private getDaysUntilMaturity(): Result<number, Error> {
-        const res = Math.round((this.maturityDate.getTime() - this.transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-        console.log(res);
-        return ({ ok: res });
+    private getReturnFactor(step: Result<number, Error>): Result<number, Error> {
+        if (step.err)
+            return (step);
+
+        const rate = step.ok;
+        const days = Math.round((this.maturityDate.getTime() - this.transactionDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        return ({ ok: Math.pow(1 + rate, days) });
+    }
+
+    private getFutureValue(step: Result<number, Error>): Result<number, Error> {
+        if (step.err)
+            return (step);
+
+        const factor = step.ok;
+        const futureValue = new Money(this.presentValue).multiply(factor);
+
+        return ({ ok: futureValue.toNumber() });
     }
 }
